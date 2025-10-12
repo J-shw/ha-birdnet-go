@@ -1,0 +1,10 @@
+{
+  "domain": "birdnet-go",
+  "name": "Birdnet Go",
+  "codeowners": ["@J-shw"],
+  "config_flow": true,
+  "documentation": "https://github.com/J-shw/ha-birdnet-go",
+  "iot_class": "local_polling",
+  "issue_tracker": "https://github.com/J-shw/ha-birdnet-go/issues",
+  "version": "0.0.0"
+}
