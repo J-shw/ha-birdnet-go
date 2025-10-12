@@ -11,13 +11,13 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     _LOGGER.info("Setting up Birdnet Go integration")
 
     host = entry.data["Host"]
-    username = entry.data["Username"]
-    password = entry.data["Password"]
+    # username = entry.data["Username"]
+    # password = entry.data["Password"]
     hass.data.setdefault(DOMAIN, {})[HOST] = host
-    hass.data.setdefault(DOMAIN, {})[USERNAME] = username
-    hass.data.setdefault(DOMAIN, {})[PASSWORD] = password
+    # hass.data.setdefault(DOMAIN, {})[USERNAME] = username
+    # hass.data.setdefault(DOMAIN, {})[PASSWORD] = password
 
-    api_client = BirdnetGoApiClient(host, username, password)
+    api_client = BirdnetGoApiClient(host)
 
     try:
         await api_client.async_get_streams_status()

@@ -5,10 +5,10 @@ _LOGGER = logging.getLogger(__name__)
 
 class BirdnetGoApiClient:
 
-    def __init__(self, host: str, username: str, password: str):
+    def __init__(self, host: str, username: str=None, password: str=None):
         """Initialise the API client."""
         self._base_url = f"http://{host}/api/v2"
-        self._auth = aiohttp.BasicAuth(username, password)
+        # self._auth = aiohttp.BasicAuth(username, password)
         self._session = None
 
     async def async_get_streams_health(self) -> dict:
@@ -34,7 +34,7 @@ class BirdnetGoApiClient:
             self._session = aiohttp.ClientSession()
 
         try:
-            async with self._session.get(url, auth=self._auth, timeout=10) as response:
+            async with self._session.get(url, timeout=10) as response: # auth=self._auth,
                 if response.status // 100 != 2:
                     error_text = await response.text()
                     _LOGGER.error("API error for %s: Status %d, Response: %s", url, response.status, error_text)
