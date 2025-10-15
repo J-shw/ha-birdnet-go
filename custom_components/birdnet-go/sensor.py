@@ -42,8 +42,8 @@ async def async_setup_entry(
 
     entities.append(StreamOverallHealthSensor(coordinator, config_entry))
 
-    if (details := coordinator.data.get("stream_details")):
-        for stream_detail in details:
+    if isinstance(coordinator.data, list) and coordinator.data:
+        for stream_detail in coordinator.data:
             entities.append(StreamDetailSensor(coordinator, config_entry, stream_detail))
 
     async_add_entities(entities)
