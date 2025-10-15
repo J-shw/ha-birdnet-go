@@ -5,9 +5,9 @@ _LOGGER = logging.getLogger(__name__)
 
 class BirdnetGoApiClient:
 
-    def __init__(self, host: str, username: str=None, password: str=None):
+    def __init__(self, host: str, port: int=80, username: str=None, password: str=None):
         """Initialise the API client."""
-        self._base_url = f"http://{host}/api/v2"
+        self._base_url = f"http://{host}:{port}/api/v2"
         # self._auth = aiohttp.BasicAuth(username, password)
         self._session = None
 
