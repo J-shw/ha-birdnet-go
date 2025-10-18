@@ -1,7 +1,7 @@
 import logging
 from homeassistant.core import HomeAssistant
 from homeassistant.config_entries import ConfigEntry
-from .const import DOMAIN, HOST, PORT, USERNAME, PASSWORD
+from .const import DOMAIN, HOST, PORT
 from .api import BirdnetGoApiClient
 
 
@@ -12,12 +12,9 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
 
     host = entry.data["Host"]
     port = entry.data["Port"]
-    # username = entry.data["Username"]
-    # password = entry.data["Password"]
+
     hass.data.setdefault(DOMAIN, {})[HOST] = host
     hass.data.setdefault(DOMAIN, {})[PORT] = port
-    # hass.data.setdefault(DOMAIN, {})[USERNAME] = username
-    # hass.data.setdefault(DOMAIN, {})[PASSWORD] = password
 
     api_client = BirdnetGoApiClient(host, port)
 

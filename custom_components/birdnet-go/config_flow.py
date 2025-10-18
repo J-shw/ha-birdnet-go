@@ -12,8 +12,6 @@ class MyConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         schema = vol.Schema({
             vol.Required("Host"): str,
             vol.Required("Port"): int,
-            vol.Optional("Username"): str,
-            vol.Optional("Password"): str
         })
         return self.async_show_form(
             step_id="user",
