@@ -15,7 +15,6 @@ SCAN_INTERVAL = timedelta(seconds=30)
 
 _LOGGER = logging.getLogger(__name__)
 
-# --- Coordinator Setup ---
 async def async_setup_entry(
     hass: HomeAssistant,
     config_entry: ConfigEntry,
@@ -39,8 +38,6 @@ async def async_setup_entry(
     await coordinator.async_config_entry_first_refresh()
 
     entities = []
-
-    entities.append(StreamOverallHealthSensor(coordinator, config_entry))
 
     if isinstance(coordinator.data, list) and coordinator.data:
         for stream_detail in coordinator.data:
@@ -71,74 +68,51 @@ class StreamBaseSensor(CoordinatorEntity, SensorEntity):
             "model": "Stream Tool",
         }
 
-class StreamOverallHealthSensor(StreamBaseSensor):
-    """Represents the overall health status of the streaming tool."""
-
-    def __init__(self, coordinator, config_entry):
-        """Initialise the Overall Health sensor."""
-        super().__init__(coordinator, config_entry)
-        self._id_suffix = "overall_health"
-
-    @property
-    def name(self):
-        """Return the name of the sensor."""
-        return f"{self._config_entry.title} Overall Health"
-
-    @property
-    def native_value(self):
-        """Return the state of the sensor (e.g., 'healthy', 'unhealthy')."""
-        return self.coordinator.data.get("status")
-
-    @property
-    def extra_state_attributes(self):
-        """Return entity specific state attributes."""
-        return {
-            "last_check_utc": self.coordinator.data.get("last_check")
-        }
-
 class StreamDetailSensor(StreamBaseSensor):
-    """Represents a specific metric for an individual stream."""
+    """Represents the health status of an individual stream."""
 
     def __init__(self, coordinator, config_entry, stream_data: dict):
         """Initialize the Stream Detail sensor."""
         super().__init__(coordinator, config_entry)
-        self._stream_url = stream_data["url"]
-        url_slug = self._stream_url.split('/')[-1]
-        self._id_suffix = f"stream_{url_slug}_uptime"
+        
+        self._stream_url = stream_data.get("url") 
+        url_slug = self._stream_url.split('/')[-1] if self._stream_url else "unknown"
+        self._id_suffix = f"stream_{url_slug}_health"
 
     @property
     def name(self):
         """Return the name of the sensor."""
-        return f"Stream {self._stream_url.split('/')[-1]} Uptime"
+        url_slug = self._stream_url.split('/')[-1] if self._stream_url else "Unknown Stream"
+        return f"Stream {url_slug} Health"
+
+    def _get_current_stream_data(self) -> dict:
+        """Helper to find this sensor's data in the coordinator's list."""
+        for stream in self.coordinator.data:
+            if stream.get("url") == self._stream_url:
+                return stream
+        return {}
 
     @property
     def native_value(self):
-        """Return the state of the sensor (uptime in seconds)."""
-        stream_details = self.coordinator.data.get("stream_details", [])
-        
-        current_stream = next(
-            (s for s in stream_details if s.get("url") == self._stream_url),
-            None
-        )
-        
-        return current_stream.get("uptime_seconds") if current_stream else None
+        """Return the state of the sensor (e.g., 'running', 'circuit_open')."""
+        current_stream = self._get_current_stream_data()
+        return current_stream.get("process_state")
 
     @property
-    def unit_of_measurement(self):
-        """Return the unit of measurement."""
-        return "s"
-    
-    @property
     def extra_state_attributes(self):
-        """Add the stream's health status as an attribute."""
-        stream_details = self.coordinator.data.get("stream_details", [])
-        current_stream = next(
-            (s for s in stream_details if s.get("url") == self._stream_url),
-            {}
-        )
+        """Add other stream details as attributes."""
+        current_stream = self._get_current_stream_data()
+        
+        last_error = current_stream.get("last_error_context")
         
         return {
-            "health_status": current_stream.get("health_status"),
             "url": self._stream_url,
-            "bitrate_mbps": current_stream.get("bitrate_mbps")
+            "is_healthy": current_stream.get("is_healthy"),
+            "is_receiving_data": current_stream.get("is_receiving_data"),
+            "time_since_data_seconds": current_stream.get("time_since_data_seconds"),
+            "bytes_per_second": current_stream.get("bytes_per_second"),
+            "restart_count": current_stream.get("restart_count"),
+            "last_data_received": current_stream.get("last_data_received"),
+            "last_error_message": last_error.get("user_facing_msg") if last_error else None,
+            "last_error_timestamp": last_error.get("timestamp") if last_error else None,
         }
